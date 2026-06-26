@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>今日のあなたのラッキープレイス</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #004fa3 0%, #0088dd 60%, #55ccff 100%);
+      font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+      padding: 24px;
+      color: #fff;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 28px;
+      padding: 44px 36px 36px;
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 12px 40px rgba(0, 0, 60, 0.35);
+    }
+
+    .label {
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      opacity: 0.75;
+      margin-bottom: 6px;
+    }
+
+    .title {
+      font-size: 19px;
+      font-weight: bold;
+      margin-bottom: 36px;
+      line-height: 1.5;
+    }
+
+    .emoji {
+      font-size: 58px;
+      display: block;
+      margin-bottom: 18px;
+      filter: drop-shadow(0 4px 8px rgba(0,0,40,0.25));
+    }
+
+    .place-name {
+      font-size: 38px;
+      font-weight: bold;
+      margin-bottom: 22px;
+      line-height: 1.25;
+      text-shadow: 0 2px 10px rgba(0,0,60,0.3);
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.3);
+      margin: 22px 0;
+    }
+
+    .description {
+      font-size: 15px;
+      line-height: 1.85;
+      opacity: 0.93;
+      margin-bottom: 28px;
+    }
+
+    .note {
+      font-size: 11px;
+      opacity: 0.55;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="label">今日のあなたの</div>
+    <div class="title">ラッキープレイス</div>
+    <span class="emoji" id="emoji"></span>
+    <div class="place-name" id="place-name"></div>
+    <hr class="divider">
+    <div class="description" id="description"></div>
+    <div class="note" id="note"></div>
+  </div>
+
+  <script>
+    // 島リスト（確定枠）
+    const islands = [
+      {
+        name: "沖永良部島", emoji: "🌺", weight: 50,
+        desc: "珊瑚礁に囲まれた「花の島」。エメラルドグリーンの海と日本最大級の鍾乳洞、そして島じゅうに咲き乱れる花々。いつかきっと、訪れる日がある。",
+        note: "鹿児島県大島郡和泊町・知名町"
+      },
+      {
+        name: "奄美大島", emoji: "🌿", weight: 5,
+        desc: "ユネスコ世界自然遺産に登録された亜熱帯の島。マングローブ、固有種の生き物、そして独自の食文化と音楽。豊かさの密度が違う。",
+        note: "鹿児島県奄美市・大和村ほか"
+      },
+      {
+        name: "喜界島", emoji: "🌾", weight: 5,
+        desc: "サンゴ礁が隆起してできた平らな島。さとうきび畑が広がり、透き通った海と断崖が共存する。風の強い島には、独特のおおらかさがある。",
+        note: "鹿児島県大島郡喜界町"
+      },
+      {
+        name: "加計呂麻島", emoji: "🚢", weight: 5,
+        desc: "奄美大島の南に浮かぶ、ゆったりとした時間が流れる秘境の島。フェリーでしか渡れない不便さが、かえって人を惹きつける。",
+        note: "鹿児島県大島郡瀬戸内町"
+      },
+      {
+        name: "請島", emoji: "🐠", weight: 5,
+        desc: "人口わずか数十人。原生林とマングローブに覆われた、ほとんど秘密みたいな島。行き方を調べるところから、すでに冒険が始まっている。",
+        note: "鹿児島県大島郡瀬戸内町"
+      },
+      {
+        name: "与路島", emoji: "🐢", weight: 5,
+        desc: "ウミガメが産卵に訪れる白砂の浜を持つ小さな島。人より自然の比率がずっと高い場所で、静かに深呼吸ができる。",
+        note: "鹿児島県大島郡瀬戸内町"
+      },
+      {
+        name: "徳之島", emoji: "🐂", weight: 5,
+        desc: "闘牛文化と豊かな自然で知られる島。アマミノクロウサギが夜の林を走り、人々は島を愛することに余念がない。",
+        note: "鹿児島県大島郡徳之島町・伊仙町・天城町"
+      },
+      {
+        name: "与論島", emoji: "🏝️", weight: 5,
+        desc: "「天国に最も近い島」と呼ばれる、珊瑚礁の白砂ビーチが続く小さな楽園。潮が引くと現れる「百合ヶ浜」は、本当に夢みたいな場所。",
+        note: "鹿児島県大島郡与論町"
+      },
+    ];
+
+    // その他30か所（15%枠から等確率で抽選）
+    const others = [
+      {
+        name: "近所の公園", emoji: "🌳",
+        desc: "ちょっと待って。あなたの家の近くにある、あの公園です。今日はそこに、きっと何かがある。ベンチでぼーっとするだけでも、それがラッキー。",
+        note: "どこにでもある、特別な場所"
+      },
+      {
+        name: "ナイアガラの滝", emoji: "💦",
+        desc: "北米とカナダの国境に轟く、世界最大級の滝。その水量と轟音の前では、人は誰でも黙り込んでしまう。行ける日が来るとしたら、今日かもしれない。",
+        note: "アメリカ・カナダ国境"
+      },
+      {
+        name: "駄菓子屋", emoji: "🍬",
+        desc: "10円のうまい棒、20円のラムネ。なぜかあの空間には、子どものころの全部が詰まっている。通り過ぎることなく、今日は立ち寄ってみて。",
+        note: "昭和の街角、あるいはあなたの記憶の中"
+      },
+      {
+        name: "図書館の奥の席", emoji: "📚",
+        desc: "誰も来ない書架の隅っこ。そこだけ時間がゆっくり流れていて、知らない本の背表紙が静かに語りかけてくる。今日のあなたには、その静けさが必要かも。",
+        note: "全国の公共図書館"
+      },
+      {
+        name: "露天風呂", emoji: "♨️",
+        desc: "空を見上げながら、ぬるめのお湯につかる。それだけでいい。今日のラッキープレイスは、目に見えない疲れを溶かしてくれる場所。",
+        note: "どこかの温泉地"
+      },
+      {
+        name: "深夜のコンビニ", emoji: "🏪",
+        desc: "夜中の2時、明るく光るコンビニはなぜかほっとする。誰とも会わなくていい、でも一人じゃない感じ。今日はここで何か、ひとつだけ気まぐれに買ってみて。",
+        note: "24時間、あなたの近く"
+      },
+      {
+        name: "サハラ砂漠", emoji: "🏜️",
+        desc: "地平線まで砂と風だけ。夜になると星が多すぎて、空が重くなる。極端に何もない場所が、なぜか「全部ある」と感じさせてくれる不思議な場所。",
+        note: "アフリカ大陸北部"
+      },
+      {
+        name: "新幹線の窓側席", emoji: "🚅",
+        desc: "流れる景色を何も考えずに眺める時間。誰も話しかけてこないし、どこにも行かなくていい。移動しながらのびのびできる、贅沢な孤独。",
+        note: "東海道・山陽・東北…どの路線でも"
+      },
+      {
+        name: "屋台のラーメン屋", emoji: "🍜",
+        desc: "暗闇に浮かぶ提灯、湯気、カウンターに並んだ見知らぬ人たち。熱いスープを一口すすると、なぜか全部どうでもよくなる夜がある。",
+        note: "博多、横浜、全国の縁日"
+      },
+      {
+        name: "銭湯", emoji: "🛁",
+        desc: "高い天井、富士山のペンキ絵、番台のおじさん。古くて、少し不便で、それがぜんぶ正解。今日の疲れはここで落としていきなさい。",
+        note: "町の銭湯"
+      },
+      {
+        name: "古本屋", emoji: "📖",
+        desc: "誰かが読んで、誰かが手放した本が並んでいる。値段も安くて、発見もある。今日は何も決めずに棚を眺めて、呼ばれた一冊だけ持って帰ろう。",
+        note: "神保町、あるいはあなたの街の古本屋"
+      },
+      {
+        name: "マチュピチュ", emoji: "🏔️",
+        desc: "雲の上に突然現れる石造りの都市。どうやって作ったのかも、なぜ捨てたのかも、わからないまま。わからないことが多い場所ほど、心が広くなる。",
+        note: "ペルー、アンデス山脈"
+      },
+      {
+        name: "屋上ビアガーデン", emoji: "🍺",
+        desc: "少し風があって、少し遠くに街の灯り。隣の人がどんな人かも関係ない夜。今日はもう、乾杯だけが正解です。",
+        note: "夏の都市部、デパート屋上など"
+      },
+      {
+        name: "山頂", emoji: "⛰️",
+        desc: "登り切ってやっとわかる、あの静けさ。足が痛くて、景色しかなくて、それだけで十分だったと思える瞬間がある。今日はそこを目指す日かもしれない。",
+        note: "日本のどこかの山"
+      },
+      {
+        name: "朝市", emoji: "🥕",
+        desc: "夜明けとともに始まる、野菜と魚と人の声。買うものが決まっていなくても、歩いているだけで元気になれる場所がある。",
+        note: "全国の朝市・早朝の市場"
+      },
+      {
+        name: "マリアナ海溝", emoji: "🌊",
+        desc: "水深11,000メートル。光の届かない深海に、それでも生き物は存在する。あなたも今日、誰も見ていない深いところで何かを感じているかもしれない。",
+        note: "太平洋、グアム島東方"
+      },
+      {
+        name: "映画館の一番後ろの席", emoji: "🎬",
+        desc: "全部が見渡せて、誰にも見られない。暗闇の中で2時間、他人の人生に丸ごと乗っかれる場所。今日はそこで、ちゃんと泣いていい。",
+        note: "お近くの映画館"
+      },
+      {
+        name: "祖父母の家", emoji: "🏡",
+        desc: "畳の匂い、仏壇の線香、冷蔵庫の中にある謎の漬物。何もしなくていい、何も頑張らなくていい場所。今日は連絡してみてもいいかもしれない。",
+        note: "あなたの記憶の中にある場所"
+      },
+      {
+        name: "宇宙ステーション", emoji: "🛸",
+        desc: "窓の外には地球が丸く見えて、昼と夜が90分ごとに来る。重力がないから、涙も宙に浮く。今日のあなたには、少し高いところからの視点が必要かも。",
+        note: "地球上空400km"
+      },
+      {
+        name: "神社の境内", emoji: "⛩️",
+        desc: "砂利を踏む音、木漏れ日、参道に漂うひんやりした空気。何かを祈るでも、何かを信じるでもなく、ただそこに立つだけで整う場所がある。",
+        note: "全国の神社"
+      },
+      {
+        name: "廃線跡", emoji: "🛤️",
+        desc: "もう列車が走らなくなった線路に、草が生えている。誰かの通勤路だった場所が、今は誰も急かさない散歩道になった。時間の重さが心地いい。",
+        note: "全国各地の廃線跡"
+      },
+      {
+        name: "商店街のアーケード", emoji: "🏮",
+        desc: "雨が降っても濡れない通り道。シャッターが増えても、それでも残っているお店がある。ゆっくり歩くと、まだ知らない何かが隠れているかもしれない。",
+        note: "昭和の匂いが残る商店街"
+      },
+      {
+        name: "海辺の岩場", emoji: "🪨",
+        desc: "波が打ちつけるたびに、違う音がする。潮溜まりに小さな生態系がある。砂浜じゃなくて、岩場が好きな人だけが知っている静けさがそこにある。",
+        note: "太平洋か日本海か、どちらの海辺にも"
+      },
+      {
+        name: "無人駅", emoji: "🚉",
+        desc: "1日に数本しか列車が来ない。ホームに誰もいなくて、時刻表だけが正確に時を刻んでいる。今日はここで、列車を一本見送ってみよう。",
+        note: "地方の単線沿線"
+      },
+      {
+        name: "喫茶店のカウンター席", emoji: "☕",
+        desc: "マスターの背中を見ながらコーヒーを飲む時間。会話しなくていい、スマホを見なくていい。今日はここで、何も生産しない30分を過ごしてみて。",
+        note: "昔ながらの純喫茶"
+      },
+      {
+        name: "夜の動物園", emoji: "🦉",
+        desc: "昼間と別の顔を持つ動物たちが動き出す夜。静かで、暗くて、少し怖くて、それがぜんぶ新鮮。同じ場所でも、時間を変えると別の世界になる。",
+        note: "上野、天王寺など夜間開園する動物園"
+      },
+      {
+        name: "北極", emoji: "🧊",
+        desc: "白と青だけの世界で、オーロラが空を染める。極夜には太陽が沈まず、極夜には沈んだままになる。常識が通じない場所で、あなたは何を考えるだろう。",
+        note: "北極圏"
+      },
+      {
+        name: "道の駅", emoji: "🚗",
+        desc: "高速を降りなくても寄れる、でも降りたくなる場所。地元の野菜、謎のご当地グルメ、旅の疲れを休める駐車場。今日のラッキーは、寄り道の先にある。",
+        note: "全国1,200か所以上"
+      },
+      {
+        name: "川沿いの遊歩道", emoji: "🌸",
+        desc: "川は同じ顔で流れ続けているのに、見るたびに違う気がする。歩くだけでいい道。今日はイヤホンを外して、水の音だけを聴きながら歩いてみて。",
+        note: "全国の河川沿い"
+      },
+      {
+        name: "子どものころの秘密基地", emoji: "🏚️",
+        desc: "あの空き地は、今は別の何かになっているかもしれない。でも、あなたの中にはまだある。今日はその場所のことを、5分だけ思い出してみてほしい。",
+        note: "あなたの記憶の中"
+      },
+    ];
+
+    function pick() {
+      const r = Math.random() * 100;
+      let cumulative = 0;
+      for (const island of islands) {
+        cumulative += island.weight;
+        if (r < cumulative) return island;
+      }
+      // 残り15%：othersからランダム
+      return others[Math.floor(Math.random() * others.length)];
+    }
+
+    const result = pick();
+    document.getElementById("emoji").textContent = result.emoji;
+    document.getElementById("place-name").textContent = result.name;
+    document.getElementById("description").textContent = result.desc;
+    document.getElementById("note").textContent = result.note;
+  </script>
+</body>
+</html>
