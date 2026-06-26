@@ -435,6 +435,8 @@
       return { place, isRepeat: false };
     }
 
+    const IMAGE_EXCLUDE = /map|location|relief|地図|位置|群島|archipelago|island.{0,5}group|japan_|_japan/i;
+
     async function fetchWikiImage(title) {
       try {
         const res = await fetch(
@@ -445,7 +447,10 @@
           if (item.type !== "image") return false;
           if (!item.srcset || item.srcset.length === 0) return false;
           const src = item.srcset[0].src || "";
-          return !src.includes(".svg");
+          const label = (item.title || "") + " " + src;
+          if (label.includes(".svg")) return false;
+          if (IMAGE_EXCLUDE.test(label)) return false;
+          return true;
         });
         if (images.length === 0) return null;
         const picked = images[Math.floor(Math.random() * images.length)];
