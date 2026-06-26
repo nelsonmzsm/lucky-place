@@ -42,19 +42,31 @@
     .title {
       font-size: 19px;
       font-weight: bold;
-      margin-bottom: 36px;
+      margin-bottom: 32px;
       line-height: 1.5;
+    }
+
+    #visual-container {
+      margin-bottom: 18px;
     }
 
     .emoji {
       font-size: 58px;
       display: block;
-      margin-bottom: 18px;
       filter: drop-shadow(0 4px 8px rgba(0,0,40,0.25));
     }
 
+    #wiki-image {
+      display: none;
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0, 0, 60, 0.4);
+    }
+
     .place-name {
-      font-size: 38px;
+      font-size: 36px;
       font-weight: bold;
       margin-bottom: 22px;
       line-height: 1.25;
@@ -71,13 +83,31 @@
       font-size: 15px;
       line-height: 1.85;
       opacity: 0.93;
-      margin-bottom: 28px;
+      margin-bottom: 16px;
+    }
+
+    .map-btn {
+      display: none;
+      margin-top: 16px;
+      padding: 10px 22px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      border-radius: 100px;
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    .map-btn:hover {
+      background: rgba(255, 255, 255, 0.32);
     }
 
     .note {
       font-size: 11px;
       opacity: 0.55;
       letter-spacing: 0.05em;
+      margin-top: 20px;
     }
   </style>
 </head>
@@ -85,59 +115,71 @@
   <div class="card">
     <div class="label">今日のあなたの</div>
     <div class="title">ラッキープレイス</div>
-    <span class="emoji" id="emoji"></span>
+
+    <div id="visual-container">
+      <span class="emoji" id="emoji"></span>
+      <img id="wiki-image" alt="">
+    </div>
+
     <div class="place-name" id="place-name"></div>
     <hr class="divider">
     <div class="description" id="description"></div>
+    <a class="map-btn" id="map-btn" target="_blank" rel="noopener">📍 Google マップで見る</a>
     <div class="note" id="note"></div>
   </div>
 
   <script>
-    // 島リスト（確定枠）
     const islands = [
       {
         name: "沖永良部島", emoji: "🌺", weight: 50,
         desc: "珊瑚礁に囲まれた「花の島」。エメラルドグリーンの海と日本最大級の鍾乳洞、そして島じゅうに咲き乱れる花々。いつかきっと、訪れる日がある。",
-        note: "鹿児島県大島郡和泊町・知名町"
+        note: "鹿児島県大島郡和泊町・知名町",
+        wiki: "沖永良部島", map: "沖永良部島"
       },
       {
         name: "奄美大島", emoji: "🌿", weight: 5,
         desc: "ユネスコ世界自然遺産に登録された亜熱帯の島。マングローブ、固有種の生き物、そして独自の食文化と音楽。豊かさの密度が違う。",
-        note: "鹿児島県奄美市・大和村ほか"
+        note: "鹿児島県奄美市・大和村ほか",
+        wiki: "奄美大島", map: "奄美大島"
       },
       {
         name: "喜界島", emoji: "🌾", weight: 5,
         desc: "サンゴ礁が隆起してできた平らな島。さとうきび畑が広がり、透き通った海と断崖が共存する。風の強い島には、独特のおおらかさがある。",
-        note: "鹿児島県大島郡喜界町"
+        note: "鹿児島県大島郡喜界町",
+        wiki: "喜界島", map: "喜界島"
       },
       {
         name: "加計呂麻島", emoji: "🚢", weight: 5,
         desc: "奄美大島の南に浮かぶ、ゆったりとした時間が流れる秘境の島。フェリーでしか渡れない不便さが、かえって人を惹きつける。",
-        note: "鹿児島県大島郡瀬戸内町"
+        note: "鹿児島県大島郡瀬戸内町",
+        wiki: "加計呂麻島", map: "加計呂麻島"
       },
       {
         name: "請島", emoji: "🐠", weight: 5,
         desc: "人口わずか数十人。原生林とマングローブに覆われた、ほとんど秘密みたいな島。行き方を調べるところから、すでに冒険が始まっている。",
-        note: "鹿児島県大島郡瀬戸内町"
+        note: "鹿児島県大島郡瀬戸内町",
+        wiki: "請島", map: "請島 鹿児島県"
       },
       {
         name: "与路島", emoji: "🐢", weight: 5,
         desc: "ウミガメが産卵に訪れる白砂の浜を持つ小さな島。人より自然の比率がずっと高い場所で、静かに深呼吸ができる。",
-        note: "鹿児島県大島郡瀬戸内町"
+        note: "鹿児島県大島郡瀬戸内町",
+        wiki: "与路島", map: "与路島"
       },
       {
         name: "徳之島", emoji: "🐂", weight: 5,
         desc: "闘牛文化と豊かな自然で知られる島。アマミノクロウサギが夜の林を走り、人々は島を愛することに余念がない。",
-        note: "鹿児島県大島郡徳之島町・伊仙町・天城町"
+        note: "鹿児島県大島郡徳之島町・伊仙町・天城町",
+        wiki: "徳之島", map: "徳之島"
       },
       {
         name: "与論島", emoji: "🏝️", weight: 5,
         desc: "「天国に最も近い島」と呼ばれる、珊瑚礁の白砂ビーチが続く小さな楽園。潮が引くと現れる「百合ヶ浜」は、本当に夢みたいな場所。",
-        note: "鹿児島県大島郡与論町"
+        note: "鹿児島県大島郡与論町",
+        wiki: "与論島", map: "与論島"
       },
     ];
 
-    // その他30か所（15%枠から等確率で抽選）
     const others = [
       {
         name: "近所の公園", emoji: "🌳",
@@ -147,7 +189,8 @@
       {
         name: "ナイアガラの滝", emoji: "💦",
         desc: "北米とカナダの国境に轟く、世界最大級の滝。その水量と轟音の前では、人は誰でも黙り込んでしまう。行ける日が来るとしたら、今日かもしれない。",
-        note: "アメリカ・カナダ国境"
+        note: "アメリカ・カナダ国境",
+        wiki: "ナイアガラの滝", map: "ナイアガラの滝"
       },
       {
         name: "駄菓子屋", emoji: "🍬",
@@ -172,7 +215,8 @@
       {
         name: "サハラ砂漠", emoji: "🏜️",
         desc: "地平線まで砂と風だけ。夜になると星が多すぎて、空が重くなる。極端に何もない場所が、なぜか「全部ある」と感じさせてくれる不思議な場所。",
-        note: "アフリカ大陸北部"
+        note: "アフリカ大陸北部",
+        wiki: "サハラ砂漠", map: "サハラ砂漠"
       },
       {
         name: "新幹線の窓側席", emoji: "🚅",
@@ -197,7 +241,8 @@
       {
         name: "マチュピチュ", emoji: "🏔️",
         desc: "雲の上に突然現れる石造りの都市。どうやって作ったのかも、なぜ捨てたのかも、わからないまま。わからないことが多い場所ほど、心が広くなる。",
-        note: "ペルー、アンデス山脈"
+        note: "ペルー、アンデス山脈",
+        wiki: "マチュピチュ", map: "マチュピチュ"
       },
       {
         name: "屋上ビアガーデン", emoji: "🍺",
@@ -217,7 +262,8 @@
       {
         name: "マリアナ海溝", emoji: "🌊",
         desc: "水深11,000メートル。光の届かない深海に、それでも生き物は存在する。あなたも今日、誰も見ていない深いところで何かを感じているかもしれない。",
-        note: "太平洋、グアム島東方"
+        note: "太平洋、グアム島東方",
+        wiki: "マリアナ海溝"
       },
       {
         name: "映画館の一番後ろの席", emoji: "🎬",
@@ -232,7 +278,8 @@
       {
         name: "宇宙ステーション", emoji: "🛸",
         desc: "窓の外には地球が丸く見えて、昼と夜が90分ごとに来る。重力がないから、涙も宙に浮く。今日のあなたには、少し高いところからの視点が必要かも。",
-        note: "地球上空400km"
+        note: "地球上空400km",
+        wiki: "国際宇宙ステーション"
       },
       {
         name: "神社の境内", emoji: "⛩️",
@@ -272,7 +319,8 @@
       {
         name: "北極", emoji: "🧊",
         desc: "白と青だけの世界で、オーロラが空を染める。極夜には太陽が沈まず、極夜には沈んだままになる。常識が通じない場所で、あなたは何を考えるだろう。",
-        note: "北極圏"
+        note: "北極圏",
+        wiki: "北極"
       },
       {
         name: "道の駅", emoji: "🚗",
@@ -291,22 +339,54 @@
       },
     ];
 
-    function pick() {
+    function pickPlace() {
       const r = Math.random() * 100;
       let cumulative = 0;
       for (const island of islands) {
         cumulative += island.weight;
         if (r < cumulative) return island;
       }
-      // 残り15%：othersからランダム
       return others[Math.floor(Math.random() * others.length)];
     }
 
-    const result = pick();
-    document.getElementById("emoji").textContent = result.emoji;
-    document.getElementById("place-name").textContent = result.name;
-    document.getElementById("description").textContent = result.desc;
-    document.getElementById("note").textContent = result.note;
+    async function fetchWikiImage(title) {
+      try {
+        const res = await fetch(
+          `https://ja.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`
+        );
+        const data = await res.json();
+        return data.thumbnail?.source ?? null;
+      } catch {
+        return null;
+      }
+    }
+
+    async function init() {
+      const place = pickPlace();
+
+      document.getElementById("emoji").textContent = place.emoji;
+      document.getElementById("place-name").textContent = place.name;
+      document.getElementById("description").textContent = place.desc;
+      document.getElementById("note").textContent = place.note;
+
+      if (place.map) {
+        const btn = document.getElementById("map-btn");
+        btn.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.map)}`;
+        btn.style.display = "inline-block";
+      }
+
+      if (place.wiki) {
+        const imgUrl = await fetchWikiImage(place.wiki);
+        if (imgUrl) {
+          const img = document.getElementById("wiki-image");
+          img.src = imgUrl;
+          img.style.display = "block";
+          document.getElementById("emoji").style.display = "none";
+        }
+      }
+    }
+
+    init();
   </script>
 </body>
 </html>
