@@ -339,6 +339,15 @@
       },
     ];
 
+    const STORAGE_KEY = "luckyplace_v1";
+
+    function todayJST() {
+      return new Intl.DateTimeFormat("ja-JP", {
+        timeZone: "Asia/Tokyo",
+        year: "numeric", month: "2-digit", day: "2-digit"
+      }).format(new Date());
+    }
+
     function pickPlace() {
       const r = Math.random() * 100;
       let cumulative = 0;
@@ -347,6 +356,27 @@
         if (r < cumulative) return island;
       }
       return others[Math.floor(Math.random() * others.length)];
+    }
+
+    function loadOrPick() {
+      const today = todayJST();
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (saved?.date === today) {
+          const list = saved.type === "island" ? islands : others;
+          return { place: list[saved.index], isRepeat: true };
+        }
+      } catch {}
+
+      const place = pickPlace();
+      const type = islands.includes(place) ? "island" : "other";
+      const list = type === "island" ? islands : others;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        date: today,
+        type,
+        index: list.indexOf(place)
+      }));
+      return { place, isRepeat: false };
     }
 
     async function fetchWikiImage(title) {
@@ -362,12 +392,13 @@
     }
 
     async function init() {
-      const place = pickPlace();
+      const { place, isRepeat } = loadOrPick();
 
       document.getElementById("emoji").textContent = place.emoji;
       document.getElementById("place-name").textContent = place.name;
       document.getElementById("description").textContent = place.desc;
-      document.getElementById("note").textContent = place.note;
+      document.getElementById("note").textContent =
+        (isRepeat ? "今日はすでに開封済み ― " : "") + place.note;
 
       if (place.map) {
         const btn = document.getElementById("map-btn");
