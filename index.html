@@ -14,6 +14,7 @@
       align-items: center;
       justify-content: center;
       background: linear-gradient(135deg, #004fa3 0%, #0088dd 60%, #55ccff 100%);
+      transition: background 0.6s ease;
       font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
       padding: 24px;
       color: #fff;
@@ -103,6 +104,25 @@
       background: rgba(255, 255, 255, 0.32);
     }
 
+    .lucky-color-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 28px;
+      font-size: 13px;
+      opacity: 0.85;
+    }
+
+    .color-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.7);
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
     .note {
       font-size: 11px;
       opacity: 0.55;
@@ -115,6 +135,11 @@
   <div class="card">
     <div class="label">今日のあなたの</div>
     <div class="title">ラッキープレイス</div>
+
+    <div class="lucky-color-row">
+      <span class="color-dot" id="color-dot"></span>
+      <span>ラッキーカラー：<strong id="lucky-color-name"></strong></span>
+    </div>
 
     <div id="visual-container">
       <span class="emoji" id="emoji"></span>
@@ -339,6 +364,36 @@
       },
     ];
 
+    const COLOR_PALETTES = [
+      { name: "桜色",   mid: "#d4748a", gradient: "135deg, #8a2a45 0%, #d4748a 55%, #f5c0cc 100%" },
+      { name: "瑠璃色",  mid: "#4477dd", gradient: "135deg, #1a2e7a 0%, #3a66cc 55%, #88aaff 100%" },
+      { name: "萌黄",   mid: "#5aaa30", gradient: "135deg, #1e5510 0%, #4a9928 55%, #9ed460 100%" },
+      { name: "朱色",   mid: "#cc4422", gradient: "135deg, #7a1a00 0%, #cc4422 55%, #f09060 100%" },
+      { name: "藤色",   mid: "#9966cc", gradient: "135deg, #3a1166 0%, #7744bb 55%, #ccaaee 100%" },
+      { name: "金色",   mid: "#cc9922", gradient: "135deg, #664400 0%, #bb8800 55%, #f0cc55 100%" },
+      { name: "珊瑚色",  mid: "#ee7755", gradient: "135deg, #993322 0%, #ee6644 55%, #ffaa88 100%" },
+      { name: "浅葱色",  mid: "#22aaaa", gradient: "135deg, #004455 0%, #119988 55%, #66ddcc 100%" },
+      { name: "茜色",   mid: "#cc2244", gradient: "135deg, #660011 0%, #bb1133 55%, #ff6688 100%" },
+      { name: "若草色",  mid: "#77bb22", gradient: "135deg, #224400 0%, #559911 55%, #aadd55 100%" },
+      { name: "橙色",   mid: "#ee7700", gradient: "135deg, #7a3300 0%, #cc6600 55%, #ffaa33 100%" },
+      { name: "菫色",   mid: "#9944bb", gradient: "135deg, #330055 0%, #7733aa 55%, #cc88ee 100%" },
+      { name: "空色",   mid: "#3399cc", gradient: "135deg, #004477 0%, #2288bb 55%, #77ccee 100%" },
+      { name: "紅梅色",  mid: "#dd5577", gradient: "135deg, #771133 0%, #cc3366 55%, #ff99bb 100%" },
+      { name: "鶯色",   mid: "#888822", gradient: "135deg, #333300 0%, #777711 55%, #bbbb44 100%" },
+      { name: "深緋",   mid: "#993333", gradient: "135deg, #440000 0%, #882222 55%, #dd6666 100%" },
+      { name: "縹色",   mid: "#3366aa", gradient: "135deg, #001144 0%, #224499 55%, #6699dd 100%" },
+      { name: "山吹色",  mid: "#ddaa00", gradient: "135deg, #664400 0%, #cc9900 55%, #ffdd44 100%" },
+      { name: "撫子色",  mid: "#dd88aa", gradient: "135deg, #883355 0%, #cc6688 55%, #ffbbcc 100%" },
+      { name: "常磐色",  mid: "#228855", gradient: "135deg, #004422 0%, #116644 55%, #55bb88 100%" },
+    ];
+
+    function applyLuckyColor() {
+      const p = COLOR_PALETTES[Math.floor(Math.random() * COLOR_PALETTES.length)];
+      document.body.style.background = `linear-gradient(${p.gradient})`;
+      document.getElementById("color-dot").style.background = p.mid;
+      document.getElementById("lucky-color-name").textContent = p.name;
+    }
+
     const STORAGE_KEY = "luckyplace_v1";
 
     function todayJST() {
@@ -392,6 +447,7 @@
     }
 
     async function init() {
+      applyLuckyColor();
       const { place, isRepeat } = loadOrPick();
 
       document.getElementById("emoji").textContent = place.emoji;
