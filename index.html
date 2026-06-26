@@ -435,7 +435,7 @@
       return { place, isRepeat: false };
     }
 
-    const IMAGE_EXCLUDE = /map|location|relief|地図|位置|群島|archipelago|island.{0,5}group|japan_|_japan/i;
+    const IMAGE_EXCLUDE = /map|location|relief|地図|位置|群島|archipelago|island.{0,5}group|japan_|_japan|ship|ferry|vessel|boat|フェリー/i;
 
     async function fetchWikiImage(title) {
       try {
